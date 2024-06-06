@@ -1,20 +1,47 @@
-name: Create Branch from An Issue
+name: Create Branch on Comment
 
 on:
-  issues:
-    types: [opened]
+  issue_comment:
+    types: [created]
 
 jobs:
-  create_branch:
+  create-branch:
+    if: startsWith(github.event.comment.body, '/create-branch')
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Check out the repository
+      uses: actions/checkout@v2
 
-      - name: Create Branch From Develop Branch
-        run: |
-          ISSUE_NUMBER=$(echo "${{ github.event.issue.number }}")
-          DASHED_ISSUE_NAME=$(echo "${{ github.event.issue.title }}" | tr ' ' '-')
-          git checkout -b "FEATURE-${ISSUE_NUMBER}-${DASHED_ISSUE_NAME}" origin/develop
-          git push origin "FEATURE-${ISSUE_NUMBER}-${DASHED_ISSUE_NAME}"
+    - name: Get issue details
+      id: issue
+      run: |
+        echo "title=${{ github.event.issue.title }}" >> $GITHUB_ENV
+        echo "number=${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+    - name: Generate branch name
+      id: generate_branch_name
+      run: |
+        ISSUE_TITLE="${{ env.title }}"
+        ISSUE_NUMBER="${{ env.number }}"
+        BRANCH_NAME="planit-${ISSUE_NUMBER}-$(echo "$ISSUE_TITLE" | tr -cd '[:alnum:]-' | tr ' ' '-')"
+        echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
+    - name: Create new branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+      run: |
+        BRANCH_NAME="${{ env.branch_name }}"
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin
+        git checkout -b "$BRANCH_NAME"
+        git push origin "$BRANCH_NAME"
+
+    - name: Comment on the issue
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+      run: |
+        ISSUE_NUMBER="${{ env.number }}"
+        BRANCH_NAME="${{ env.branch_name }}"
+        curl -X POST -H "Authorization: token $ACTION_TOKEN" -d "{\"body\": \"Branch [$BRANCH_NAME](https://github.com/${{ github.repository }}/tree/$BRANCH_NAME) created.\"}" "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
