@@ -1,0 +1,20 @@
+name: Create Branch from An Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Create Branch From Develop Branch
+        run: |
+          ISSUE_NUMBER=$(echo "${{ github.event.issue.number }}")
+          DASHED_ISSUE_NAME=$(echo "${{ github.event.issue.title }}" | tr ' ' '-')
+          git checkout -b "FEATURE-${ISSUE_NUMBER}-${DASHED_ISSUE_NAME}" origin/develop
+          git push origin "FEATURE-${ISSUE_NUMBER}-${DASHED_ISSUE_NAME}"
