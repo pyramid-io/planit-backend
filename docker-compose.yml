@@ -8,32 +8,38 @@ services:
     volumes: 
       - .:/var/www
     ports:
-      - "8080:8080"
-    depends_on:
-      - db
+      - "${APP_PORT}:8080"
+    # depends_on:
+      # - db
     networks:
       - planit-network
 
-  db:
-    image: mysql:latest
-    container_name: planit-db
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: your_db_name
-    networks:
-      - planit-network
+  # db:
+  #   image: mysql:latest
+  #   container_name: planit-db
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: example
+  #     MYSQL_DATABASE: your_db_name
+  #   networks:
+  #     - planit-network
 
   nginx:
     image: nginx:alpine
     container_name: planit-api-webserver
+    environment:
+      - APP_PORT=${APP_PORT}
+      - SERVER_NAME=${SERVER_NAME}
     ports:
       - "80:80"
     volumes: 
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./docker/nginx/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
     depends_on:
       - app
+    entrypoint: /usr/local/bin/entrypoint.sh
+
     networks:
       - planit-network
 
