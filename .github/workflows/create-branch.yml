@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ACTION_TOKEN }}
 
     - name: Get issue details
       id: issue
@@ -19,31 +21,35 @@ jobs:
         echo "title=${{ github.event.issue.title }}" >> $GITHUB_ENV
         echo "number=${{ github.event.issue.number }}" >> $GITHUB_ENV
 
-    - name: Generate branch name
-      id: generate_branch_name
-      run: |
-        ISSUE_TITLE="${{ env.title }}"
-        ISSUE_NUMBER="${{ env.number }}"
-        BRANCH_NAME="planit-${ISSUE_NUMBER}-$(echo "$ISSUE_TITLE" | tr -cd '[:alnum:]-' | tr ' ' '-')"
-        echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
-
-    - name: Create new branch
+    - name: Create a New Branch and Comment It on Issue
       env:
         GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
       run: |
-        echo "secret: ${{ secrets.ACTION_TOKEN }}"
-        echo "env: ${{ env.GITHUB_TOKEN }}"
-        BRANCH_NAME="${{ env.branch_name }}"
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git fetch origin
-        git checkout -b "$BRANCH_NAME"
-        git push origin "$BRANCH_NAME"
-
-    - name: Comment on the issue
-      env:
-        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
-      run: |
-        ISSUE_NUMBER="${{ env.number }}"
-        BRANCH_NAME="${{ env.branch_name }}"
-        curl -X POST -H "Authorization: token $GITHUB_TOKEN" -d "{\"body\": \"Branch [$BRANCH_NAME](https://github.com/${{ github.repository }}/tree/$BRANCH_NAME) created.\"}" "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
+        git fetch --all
+        BASE_BRANCH_NAME="API-${{ env.number }}-$(echo "${{ env.title }}" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]- ' | tr ' ' '-')"
+        EXISTING_BRANCHES=$(git branch -r | grep "origin/$BASE_BRANCH_NAME" | sed 's/.*\///')
+        if [[ -z "$EXISTING_BRANCHES" ]]; then
+          NEW_BRANCH_NAME="$BASE_BRANCH_NAME"
+        else
+          MAX=0
+          for BRANCH in $EXISTING_BRANCHES; do
+            if [[ "$BRANCH" =~ $BASE_BRANCH_NAME-([0-9]+)$ ]]; then
+              NUM=${BASH_REMATCH[1]}
+              if [[ $NUM -gt $MAX ]]; then
+                MAX=$NUM
+              fi
+            fi
+          done
+          NEW_BRANCH_NAME="$BASE_BRANCH_NAME-$((MAX + 1))"
+        fi
+        echo "New branch name: $NEW_BRANCH_NAME"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b $NEW_BRANCH_NAME
+        git push origin $NEW_BRANCH_NAME
+        echo "commenting on issue..."
+        COMMENT_BODY="A new branch named \`$NEW_BRANCH_NAME\` has been created for this issue."
+        curl -s -H "Authorization: token $GITHUB_TOKEN" \
+           -H "Content-Type: application/json" \
+           -d "{\"body\": \"$COMMENT_BODY\"}" \
+           "https://api.github.com/repos/${{ github.repository }}/issues/${{env.number}}/comments"
