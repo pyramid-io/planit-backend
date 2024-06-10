@@ -1,0 +1,14 @@
+# HTTP server
+server {
+    listen 80;
+    server_name ${SERVER_NAME} localhost 127.0.0.1;
+
+    # Location for proxying requests to Go application
+    location / {
+        proxy_pass http://app:${APP_PORT};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
