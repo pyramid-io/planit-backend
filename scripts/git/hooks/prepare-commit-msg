@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# The path to the commit message file
+COMMIT_MSG_FILE=$1
+
+# The type of commit message (e.g., message, template, merge, squash, commit, or empty)
+COMMIT_SOURCE=$2
+
+# The SHA1 hash of the commit (if applicable)
+SHA1=$3
+
+echo $COMMIT_SOURCE
+
+if [ "$COMMIT_SOURCE" == "squash" ]; then
+  exit 0
+fi
+
+if [ -f "$(git rev-parse --git-path rebase-merge/interactive)" ] || [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -f "$(git rev-parse --git-path rebase-apply/interactive)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
+  exit 0
+fi
+
+
+# Extract the branch name
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+# Extract the prefix from the branch name (assumes the prefix ends with the first hyphen)
+PREFIX=$(echo $BRANCH_NAME | grep -o '^API-[0-9]*')
+
+# If prefix is not found, abort the commit
+if [ -z "$PREFIX" ]; then
+  echo "Error: Branch name does not contain the required prefix. Commit aborted."
+  exit 1
+fi
+
+# Construct the message to prepend
+PREPEND_MSG="$PREFIX:"
+
+# Check if the commit message is a merge commit
+if [ "$COMMIT_SOURCE" == "merge" ]; then
+  exit 0
+fi
+
+# Prepend the custom message to the commit message file
+echo -e "$PREPEND_MSG\n$(cat $COMMIT_MSG_FILE)" > $COMMIT_MSG_FILE

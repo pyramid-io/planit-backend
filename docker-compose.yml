@@ -3,7 +3,7 @@ version: '3'
 services:
   app:
     build: 
-      context: ./docker/go
+      context: ./docker/app
     container_name: planit-api
     volumes: 
       - .:/var/www
