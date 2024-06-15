@@ -1,2 +1,3 @@
 run: docker compose up -d
-access: http://localhost
+access: 127.0.0.1
+
