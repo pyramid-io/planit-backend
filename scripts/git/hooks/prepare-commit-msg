@@ -9,8 +9,6 @@ COMMIT_SOURCE=$2
 # The SHA1 hash of the commit (if applicable)
 SHA1=$3
 
-echo $COMMIT_SOURCE
-
 if [ "$COMMIT_SOURCE" == "squash" ]; then
   exit 0
 fi
