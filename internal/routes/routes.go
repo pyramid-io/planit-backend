@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/pyramid.io/planit-backend/internal/handlers/dummyHandler"
-	jsonhandler "github.com/pyramid.io/planit-backend/internal/handlers/jsonHandler"
+	"github.com/pyramid.io/planit-backend/internal/handlers/dummy_handler"
+	json_handler "github.com/pyramid.io/planit-backend/internal/handlers/json_handler"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
 )
 
@@ -22,18 +22,18 @@ var routes = []router.Route{
 	},
 	{
 		Path:    "/ping",
-		Handler: dummyHandler.Ping,
+		Handler: dummy_handler.Ping,
 	},
 	{
 		Path:    "/pong",
-		Handler: dummyHandler.Pong,
+		Handler: dummy_handler.Pong,
 	},
 	{
 		Path:    "/json",
-		Handler: jsonhandler.JsonResponseHandler,
+		Handler: json_handler.JsonResponseHandler,
 	},
 	{
 		Path:    "/test-logger",
-		Handler: dummyHandler.TestLogger,
+		Handler: dummy_handler.TestLogger,
 	},
 }

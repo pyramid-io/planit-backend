@@ -1,4 +1,4 @@
-package dummyHandler
+package dummy_handler
 
 import (
 	"fmt"

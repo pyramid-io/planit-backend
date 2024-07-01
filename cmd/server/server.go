@@ -6,13 +6,13 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/pyramid.io/planit-backend/internal/routes"
-	"github.com/pyramid.io/planit-backend/pkg/configloader"
+	"github.com/pyramid.io/planit-backend/pkg/config_loader"
 	"github.com/pyramid.io/planit-backend/pkg/framework/application"
 )
 
 func main() {
 	cfgPath := getConfigPath()
-	cfg := configloader.Load(cfgPath)
+	cfg := config_loader.Load(cfgPath)
 
 	app, err := application.New(cfg, routes.GetRoutes())
 	if err != nil {

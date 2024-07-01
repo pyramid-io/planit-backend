@@ -1,4 +1,4 @@
-package configloader
+package config_loader
 
 import (
 	"log"

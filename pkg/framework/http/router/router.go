@@ -9,7 +9,7 @@ type RouterInterface interface {
 	ServeHTTP(w http.ResponseWriter, req *http.Request)
 }
 
-type router struct {
+type Router struct {
 	routes map[string]http.HandlerFunc
 }
 
@@ -18,19 +18,19 @@ type Route struct {
 	Handler http.HandlerFunc
 }
 
-func New() *router {
-	return &router{
+func New() *Router {
+	return &Router{
 		routes: make(map[string]http.HandlerFunc),
 	}
 }
 
-func (r *router) RegisterRoutes(routes *[]Route) {
+func (r *Router) RegisterRoutes(routes *[]Route) {
 	for _, route := range *routes {
 		r.routes[route.Path] = route.Handler
 	}
 }
 
-func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if handler, exists := r.routes[req.URL.Path]; exists {
 		handler(w, req)
 	} else {

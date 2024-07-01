@@ -5,25 +5,25 @@ import (
 	"net/http"
 )
 
-type responseInterface interface{
+type ResponseInterface interface{
 	Write(writer http.ResponseWriter, data interface{})
 }
 
-type jsonResponse struct{
+type JsonResponse struct{
 	Status  string
 	Message string
 	Data    interface{}
 }
 
-func CreateJsonResponse(status string, message string, data interface{}) jsonResponse {
-	return jsonResponse{
+func CreateJsonResponse(status string, message string, data interface{}) JsonResponse {
+	return JsonResponse{
 		Status: status,
 		Message: message,
 		Data: data,
 	}
 }
 
-func (response *jsonResponse) Write(writer http.ResponseWriter, statusCode int) {
+func (response *JsonResponse) Write(writer http.ResponseWriter, statusCode int) {
 	writer.Header().Set("Content-Type", "application/json")
     writer.WriteHeader(statusCode)
     if err := json.NewEncoder(writer).Encode(&response); err != nil {
