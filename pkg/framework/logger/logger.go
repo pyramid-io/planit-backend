@@ -14,8 +14,6 @@ type LoggerInterface interface {
 	Warning(message string)
 	Error(message string)
 	Critical(message string)
-
-	Close()
 }
 
 type LogLevel string
@@ -30,7 +28,7 @@ const (
 )
 
 type Logger struct {
-	mu      sync.Mutex
+	mu sync.Mutex
 	logFile *os.File
 }
 
@@ -51,7 +49,7 @@ func New(logPath string) (*Logger, error) {
 	}, nil
 }
 
-func (l *Logger) Close() {
+func (l *Logger) Terminate() {
 	l.logFile.Close()
 }
 

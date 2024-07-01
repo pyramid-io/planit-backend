@@ -1,6 +1,8 @@
 package application
 
 import (
+	"reflect"
+
 	"github.com/knadh/koanf"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
 	"github.com/pyramid.io/planit-backend/pkg/framework/logger"
@@ -46,5 +48,14 @@ func (application *Application) Start(port string) {
 }
 
 func (application *Application) Terminate() {
-	application.Logger.Close()
+
+	v := reflect.ValueOf(application)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		iface, ok := field.Interface().(TerminateableServiceInterface)
+		if ok {
+			iface.Terminate()
+		}
+	}
 }
