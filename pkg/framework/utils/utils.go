@@ -24,8 +24,8 @@ func ReadEnv(key string, defaults ...string) string {
     return ""
 }
 
-func ReadEnvOrPanic(key string, defaults ...string) string {
-    val := ReadEnv(key, defaults...)
+func ReadEnvOrPanic(key string) string {
+    val := ReadEnv(key)
 
 	if val == "" {
 		log.Panicf("Environment variable %s is not set and no default value provided", key)

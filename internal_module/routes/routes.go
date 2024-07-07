@@ -21,4 +21,5 @@ var routes = []router.RouteInterface{
 	router.GET("/pong", dummy_handler.Pong),
 	router.GET("/json", json_handler.JsonResponseHandler),
 	router.GET("/test-logger", dummy_handler.TestLogger),
+	router.GET("/time", dummy_handler.TimeHandler),
 }
