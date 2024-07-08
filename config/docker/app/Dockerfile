@@ -1,18 +1,22 @@
-# Start from the latest golang base image
 FROM golang:latest
 
-RUN go install github.com/cespare/reflex@latest
-# RUN go install github.com/go-delve/delve/cmd/dlv@latest
-
-# Set the Current Working Directory inside the container
 WORKDIR /var/www
 
-# Expose port 8080 to the outside world
-EXPOSE 8080
-# EXPOSE 2345
+RUN go install github.com/cespare/reflex@latest
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+# RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 ADD . /var/www
-RUN go mod tidy & go mod verify
 
+
+RUN go mod download
+RUN go mod tidy
+RUN go mod verify
+
+RUN swag init -g cmd/server/server.go
+
+
+EXPOSE 8080
+# EXPOSE 2345
 
 

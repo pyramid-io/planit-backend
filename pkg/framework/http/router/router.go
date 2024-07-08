@@ -2,8 +2,8 @@ package router
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
+	"strings"
 )
 var router *Router
 
@@ -70,24 +70,28 @@ func (r *Router) RegisterRoutes(routes *[]RouteInterface) {
 	}
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("request path is: ", req.URL.Path)
-	route, err := r.findRouteByPath(req.URL.Path)
-	
-	if err != nil {
-		fmt.Println("Route is not available for this path: ", req.URL.Path)
-		http.NotFound(w, req)
-		return
+func matchRoute(pattern, path string) bool {
+	if pattern == path {
+		return true
 	}
+	if strings.HasSuffix(pattern, "/*") {
+		basePattern := strings.TrimSuffix(pattern, "/*")
+		if strings.HasPrefix(path, basePattern) {
+			return true
+		}
+	}
+	return false
+}
 
-	if route.GetMethod() != req.Method {
-		http.Error(w, fmt.Sprintf("Http mehtod (%s) is not supported.", req.Method), http.StatusMethodNotAllowed)	
-		return
-	} else {
-		handler := route.GetHandler()
-		handler(w, req)
-		return
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	for _, route := range r.routes {
+		if matchRoute(route.GetPath(), req.URL.Path) && req.Method == route.GetMethod() {
+			handler := route.GetHandler()
+			handler(w, req)
+			return
+		}
 	}
+	http.NotFound(w, req)
 }
 
 func (r *Router) findRouteByPath(path string) (RouteInterface, error) {

@@ -1,0 +1,32 @@
+info:
+  contact: {}
+paths:
+  /ping:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: check api work healthy with ping
+  /pong:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: check api work healthy with pong
+  /test-logger:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: check test logger
+  /time:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: check api work healthy with pong
+swagger: "2.0"
