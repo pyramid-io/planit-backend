@@ -40,9 +40,17 @@ func TimeHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Router /with-params/:i/:j [get]
 func WithParams(w http.ResponseWriter, r *http.Request) {
-	context := r.Context()
-	for _, ctx := range context {
+	i, ok := r.Context().Value("i").(string)
+    if !ok {
+        fmt.Println("i is missing")
+        return
+    }
 
-	}
-	fmt.Fprintf(w, fmt.Sprintf("current time is: %s", time.Now().String()))
+	j, ok := r.Context().Value("j").(string)
+    if !ok {
+        fmt.Println("j is missing")
+        return
+    }
+
+	fmt.Fprintf(w, fmt.Sprintf("i and j are: %s and %s", i, j))
 }

@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -73,7 +74,7 @@ func (r *Router) RegisterRoutes(routes *[]RouteInterface) {
 func matchRoute(pattern, path string) (bool, map[string]string) {
 	patternParts := strings.Split(pattern, "/")
 	pathParts := strings.Split(path, "/")
-
+	fmt.Println(patternParts)
 	if len(patternParts) != len(pathParts) {
 		return false, nil
 	}
@@ -94,12 +95,13 @@ func matchRoute(pattern, path string) (bool, map[string]string) {
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	for _, route := range r.routes {
+		fmt.Fprintln(w, "path is: ", route.GetPath())
 		if match, params := matchRoute(route.GetPath(), req.URL.Path); match {
 			if req.Method != route.GetMethod() {
 				http.Error(w, "Requested http method is not supported", 405)
 				return
 			}
-			
+
 			ctx := req.Context()
 			for key, value := range params {
 				ctx = context.WithValue(ctx, key, value)
