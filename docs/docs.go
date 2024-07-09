@@ -60,6 +60,16 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/with-params/{i}/{j}": {
+            "get": {
+                "summary": "check with params functionality of router",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
     }
 }`
@@ -68,7 +78,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "",
 	Host:             "",
-	BasePath:         "/",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",

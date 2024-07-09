@@ -49,6 +49,16 @@
                     }
                 }
             }
+        },
+        "/with-params/{i}/{j}": {
+            "get": {
+                "summary": "check with params functionality of router",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
     }
 }

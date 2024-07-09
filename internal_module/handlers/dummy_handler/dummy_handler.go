@@ -38,7 +38,7 @@ func TimeHandler(w http.ResponseWriter, r *http.Request) {
 
 // @Summary check with params functionality of router
 // @Success 200
-// @Router /with-params/:i/:j [get]
+// @Router /with-params/{i}/{j} [get]
 func WithParams(w http.ResponseWriter, r *http.Request) {
 	i, ok := r.Context().Value("i").(string)
     if !ok {

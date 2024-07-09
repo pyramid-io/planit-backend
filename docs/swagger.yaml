@@ -29,4 +29,10 @@ paths:
         "200":
           description: OK
       summary: check api work healthy with pong
+  /with-params/{i}/{j}:
+    get:
+      responses:
+        "200":
+          description: OK
+      summary: check with params functionality of router
 swagger: "2.0"
