@@ -1,7 +1,7 @@
 package router
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"strings"
 )
@@ -9,7 +9,7 @@ var router *Router
 
 func New() (RouterInterface, error) {
 	router = &Router{
-		routes: make(map[string]RouteInterface),
+		routes: []RouteInterface{},
 	}
 
 	return router, nil
@@ -61,45 +61,54 @@ func (route Route) GetMethod() string {
 }
 
 type Router struct {
-	routes map[string]RouteInterface
+	routes []RouteInterface
 }
 
 func (r *Router) RegisterRoutes(routes *[]RouteInterface) {
 	for _, route := range *routes {
-		r.routes[route.GetPath()] = route
+		r.routes = append(r.routes, route)
 	}
 }
 
-func matchRoute(pattern, path string) bool {
-	if pattern == path {
-		return true
+func matchRoute(pattern, path string) (bool, map[string]string) {
+	patternParts := strings.Split(pattern, "/")
+	pathParts := strings.Split(path, "/")
+
+	if len(patternParts) != len(pathParts) {
+		return false, nil
 	}
-	if strings.HasSuffix(pattern, "/*") {
-		basePattern := strings.TrimSuffix(pattern, "/*")
-		if strings.HasPrefix(path, basePattern) {
-			return true
+
+	params := make(map[string]string)
+	for i, patternPart := range patternParts {
+		if strings.HasPrefix(patternPart, ":") {
+			params[patternPart[1:]] = pathParts[i]
+		} else if patternPart == "*" {
+			return true, params
+		} else if patternPart != pathParts[i] {
+			return false, nil
 		}
 	}
-	return false
+	return true, params
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
 	for _, route := range r.routes {
-		if matchRoute(route.GetPath(), req.URL.Path) && req.Method == route.GetMethod() {
+		if match, params := matchRoute(route.GetPath(), req.URL.Path); match {
+			if req.Method != route.GetMethod() {
+				http.Error(w, "Requested http method is not supported", 405)
+				return
+			}
+			
+			ctx := req.Context()
+			for key, value := range params {
+				ctx = context.WithValue(ctx, key, value)
+			}
+			req = req.WithContext(ctx)
 			handler := route.GetHandler()
 			handler(w, req)
 			return
 		}
 	}
 	http.NotFound(w, req)
-}
-
-func (r *Router) findRouteByPath(path string) (RouteInterface, error) {
-	route, exists := r.routes[path]
-
-	if !exists {
-		return nil, errors.New("not found") 
-	}
-
-	return route, nil
 }

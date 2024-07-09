@@ -35,3 +35,14 @@ func TestLogger(w http.ResponseWriter, r *http.Request) {
 func TimeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, fmt.Sprintf("current time is: %s", time.Now().String()))
 }
+
+// @Summary check with params functionality of router
+// @Success 200
+// @Router /with-params/:i/:j [get]
+func WithParams(w http.ResponseWriter, r *http.Request) {
+	context := r.Context()
+	for _, ctx := range context {
+
+	}
+	fmt.Fprintf(w, fmt.Sprintf("current time is: %s", time.Now().String()))
+}

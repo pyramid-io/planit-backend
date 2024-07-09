@@ -24,5 +24,6 @@ var routes = []router.RouteInterface{
 	router.GET("/json", json_handler.JsonResponseHandler),
 	router.GET("/test-logger", dummy_handler.TestLogger),
 	router.GET("/time", dummy_handler.TimeHandler),
+	router.GET("/with-paraqms/:i/:j", dummy_handler.WithParams),
 	router.GET("/swagger/*", httpSwagger.WrapHandler),
 }
