@@ -7,7 +7,7 @@ import (
 
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
 	"github.com/pyramid.io/planit-backend/pkg/framework/logger"
-	"github.com/pyramid.io/planit-backend/pkg/framework/http/server"
+	"github.com/pyramid.io/planit-backend/pkg/framework/server"
 )
 
 type Application struct {
