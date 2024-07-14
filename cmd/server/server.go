@@ -17,16 +17,12 @@ func main() {
 
 	fmt.Println("Starting the application...")
 	app, err := application.New(config.GetInstance())
-	fmt.Println("Application started.")
+	defer app.Terminate()
 
 	if err != nil {
 		log.Fatalf("unable to instantiate application instance")
 	}
 
-	defer app.Terminate()
-
 	fmt.Println("Starting server...")
 	app.StartServer()
-	fmt.Println("Server started.")
-
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/pyramid.io/planit-backend/docs"
 	"github.com/pyramid.io/planit-backend/internal_module/handlers/dummy_handler"
 	json_handler "github.com/pyramid.io/planit-backend/internal_module/handlers/json_handler"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
 	httpSwagger "github.com/swaggo/http-swagger"
-	_ "github.com/pyramid.io/planit-backend/docs"
 )
 
 func GetRoutes() *[]router.RouteInterface {
@@ -28,4 +28,8 @@ var routes = []router.RouteInterface{
 	router.GET("/swagger/*", httpSwagger.WrapHandler),
 	router.GET("/session-create", dummy_handler.SessionCreateHandler),
 	router.GET("/session-get", dummy_handler.SessionGetHandler),
+	router.GET("/route-with-middleware", dummy_handler.MiddlewareTest).
+		Middlewares(
+			LoggingMiddlewareInternal,
+		),
 }

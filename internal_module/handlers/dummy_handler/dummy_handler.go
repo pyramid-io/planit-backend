@@ -41,31 +41,30 @@ func TimeHandler(w http.ResponseWriter, r *http.Request) {
 // @Router /with-params/{i}/{j} [get]
 func WithParams(w http.ResponseWriter, r *http.Request) {
 	i, ok := r.Context().Value("i").(string)
-    if !ok {
-        fmt.Println("i is missing")
-        return
-    }
+	if !ok {
+		fmt.Println("i is missing")
+		return
+	}
 
 	j, ok := r.Context().Value("j").(string)
-    if !ok {
-        fmt.Println("j is missing")
-        return
-    }
+	if !ok {
+		fmt.Println("j is missing")
+		return
+	}
 
 	fmt.Fprintf(w, fmt.Sprintf("i and j are: %s and %s", i, j))
 }
-
 
 // @Summary check with params functionality of router
 // @Success 200
 // @Router /session-create [get]
 func SessionCreateHandler(w http.ResponseWriter, r *http.Request) {
-	sessionData := map[string]interface{} {
+	sessionData := map[string]interface{}{
 		"a": "a",
 		"b": "b",
 	}
 	session, err := application.Instance.Session.Create(sessionData, nil)
-	if (err == nil) {
+	if err == nil {
 		fmt.Fprintf(w, fmt.Sprintf(session.ID))
 	}
 
@@ -75,6 +74,13 @@ func SessionCreateHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200
 // @Router /session-get [get]
 func SessionGetHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 }
 
+// @Summary check with params functionality of router
+// @Success 200
+// @Router /route-with-middleware [get]
+func MiddlewareTest(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Logging in handler")
+	fmt.Fprintf(w, "route with middleware handler")
+}
