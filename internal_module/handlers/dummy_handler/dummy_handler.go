@@ -54,3 +54,27 @@ func WithParams(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, fmt.Sprintf("i and j are: %s and %s", i, j))
 }
+
+
+// @Summary check with params functionality of router
+// @Success 200
+// @Router /session-create [get]
+func SessionCreateHandler(w http.ResponseWriter, r *http.Request) {
+	sessionData := map[string]interface{} {
+		"a": "a",
+		"b": "b",
+	}
+	session, err := application.Instance.Session.Create(sessionData, nil)
+	if (err == nil) {
+		fmt.Fprintf(w, fmt.Sprintf(session.ID))
+	}
+
+}
+
+// @Summary check with params functionality of router
+// @Success 200
+// @Router /session-get [get]
+func SessionGetHandler(w http.ResponseWriter, r *http.Request) {
+	
+}
+

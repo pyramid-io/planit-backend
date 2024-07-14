@@ -26,4 +26,6 @@ var routes = []router.RouteInterface{
 	router.GET("/time", dummy_handler.TimeHandler),
 	router.GET("/with-params/:i/:j", dummy_handler.WithParams),
 	router.GET("/swagger/*", httpSwagger.WrapHandler),
+	router.GET("/session-create", dummy_handler.SessionCreateHandler),
+	router.GET("/session-get", dummy_handler.SessionGetHandler),
 }
