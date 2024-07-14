@@ -12,9 +12,9 @@ type internalModule struct {
 	moduleRoutes *[]router.RouteInterface
 }
 
-func (m *internalModule) Boot(application *application.Application) {
+func (m *internalModule) Boot() {
 	m.moduleRoutes = routes.GetRoutes()
-	application.Router.RegisterRoutes(
+	application.Instance.Router.RegisterRoutes(
 		m.moduleRoutes,
 	)
 }
