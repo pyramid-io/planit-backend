@@ -15,12 +15,13 @@ func main() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
+	
 	fmt.Println("Starting the application...")
 	app, err := application.New(config.GetInstance())
 	defer app.Terminate()
 
 	if err != nil {
-		log.Fatalf("unable to instantiate application instance")
+		log.Fatalf("unable to instantiate application instance: ", err)
 	}
 
 	fmt.Println("Starting server...")

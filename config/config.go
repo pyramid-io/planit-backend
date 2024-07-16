@@ -40,20 +40,20 @@ func initialize() {
 		Session: &config.SessionConfig{
 			Driver: "filesystem",
 			Config: map[string]interface{}{
-				"dir": utils.ReadEnvOrPanic("SESSION_PATH"),
+				"dir":        utils.ReadEnvOrPanic("SESSION_PATH"),
 				"defaultTTL": 30 * time.Minute,
 			},
 		},
-		Database: []interfaces.DatabaseConnectionConfigInterface{
+		Database: []interfaces.DatabaseDriverConfigInterface{
 			config.DatabaseConnectionConfig{
 				Driver: "mysql",
 				ConnectionName: "api",
 				Config: map[string]interface{}{
-					"username": utils.ReadEnvOrPanic("MYSQL_API_USER"),
-					"password": utils.ReadEnvOrPanic("MYSQL_API_PASS"),
+					"username": utils.ReadEnvOrPanic("MYSQL_API_USERNAME"),
+					"password": utils.ReadEnvOrPanic("MYSQL_API_PASSWORD"),
 					"host": utils.ReadEnvOrPanic("MYSQL_API_HOST"),
 					"port": utils.ReadEnv("MYSQL_API_PORT", "3306"),
-					"database": utils.ReadEnvOrPanic("MYSQL_API_DATABASE"),
+					"databaseName": utils.ReadEnvOrPanic("MYSQL_API_DATABASE"),
 				},
 			},
 		},

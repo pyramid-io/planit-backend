@@ -14,16 +14,16 @@ type DatabaseServiceInterface interface {
 }
 
 type DatabaseService struct {
-	Connections map[string]drivers.DatabaseDriverInterface
+	Drivers map[string]drivers.DatabaseDriverInterface
 }
 
 func (db *DatabaseService) AddConnection(name string, connection drivers.DatabaseDriverInterface) error {
-	db.Connections[name] = connection
+	db.Drivers[name] = connection
 	return nil
 }
 
 func (db *DatabaseService) GetConnection(name string) (drivers.DatabaseDriverInterface, error) {
-	connection, exists := db.Connections[name]
+	connection, exists := db.Drivers[name]
 	if !exists {
 		return nil, fmt.Errorf("connection %s not found", name)
 	}
@@ -31,11 +31,11 @@ func (db *DatabaseService) GetConnection(name string) (drivers.DatabaseDriverInt
 }
 
 var dbService DatabaseServiceInterface = &DatabaseService{
-	Connections: make(map[string]drivers.DatabaseDriverInterface),
+	Drivers: make(map[string]drivers.DatabaseDriverInterface),
 }
 
-func New(connectionsConfig []interfaces.DatabaseConnectionConfigInterface) (DatabaseServiceInterface, error) {
-	for _, connectionConfig := range connectionsConfig {
+func New(driversConfig []interfaces.DatabaseDriverConfigInterface) (DatabaseServiceInterface, error) {
+	for _, connectionConfig := range driversConfig {
 		var constructor drivers.DatabaseConnectionConstructor
 		var ok bool
 
@@ -55,6 +55,10 @@ func New(connectionsConfig []interfaces.DatabaseConnectionConfigInterface) (Data
 		if err != nil {
 			return nil, err
 		}
+		error := connection.Connect()
+		if (error != nil) {
+			return nil, error
+		}
 
 		dbService.AddConnection(
 			connectionConfig.GetConnectionName(),
@@ -62,4 +66,10 @@ func New(connectionsConfig []interfaces.DatabaseConnectionConfigInterface) (Data
 		)
 	}
 	return dbService, nil
+}
+
+func (dbService *DatabaseService) Terminate() {
+	for _, connection := range dbService.Drivers {
+		connection.Close()
+	}
 }

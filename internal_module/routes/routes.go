@@ -28,6 +28,7 @@ var routes = []router.RouteInterface{
 	router.GET("/swagger/*", httpSwagger.WrapHandler),
 	router.GET("/session-create", dummy_handler.SessionCreateHandler),
 	router.GET("/session-get", dummy_handler.SessionGetHandler),
+	router.GET("/database-test", dummy_handler.DatabaseTest),
 	router.GET("/route-with-middleware", dummy_handler.MiddlewareTest).
 		Middlewares(
 			LoggingMiddlewareInternal,

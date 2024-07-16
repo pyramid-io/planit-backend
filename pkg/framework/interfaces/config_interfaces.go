@@ -5,7 +5,7 @@ type ConfigInterface interface {
 	GetSeverConfig() ServerConfigInterface
 	GetLoggerConfig() LoggerConfigInterface
 	GetSessionConfig() SessionConfigInterface
-	GetDatabaseConfig() []DatabaseConnectionConfigInterface
+	GetDatabaseConfig() []DatabaseDriverConfigInterface
 }
 
 type ServerConfigInterface interface {
@@ -23,9 +23,9 @@ type SessionConfigInterface interface {
 	GetDriverConfig() map[string]interface{}
 }
 
-type DatabaseConfigInterface interface {}
+type DatabaseConfigInterface interface{}
 
-type DatabaseConnectionConfigInterface interface {
+type DatabaseDriverConfigInterface interface {
 	GetDriver() DriverKeyOrConstructor
 	GetConnectionName() string
 	GetConfig() map[string]interface{}

@@ -5,12 +5,12 @@ import (
 )
 
 type Config struct {
-	Name *string
-	Modules *[]interfaces.ModuleInterface
-	Server interfaces.ServerConfigInterface
-	Logger interfaces.LoggerConfigInterface
-	Session interfaces.SessionConfigInterface
-	Database []interfaces.DatabaseConnectionConfigInterface
+	Name     *string
+	Modules  *[]interfaces.ModuleInterface
+	Server   interfaces.ServerConfigInterface
+	Logger   interfaces.LoggerConfigInterface
+	Session  interfaces.SessionConfigInterface
+	Database []interfaces.DatabaseDriverConfigInterface
 	Services *map[string]interface{}
 }
 
@@ -30,7 +30,7 @@ func (c *Config) GetSessionConfig() interfaces.SessionConfigInterface {
 	return c.Session
 }
 
-func (c *Config) GetDatabaseConfig() []interfaces.DatabaseConnectionConfigInterface {
+func (c *Config) GetDatabaseConfig() []interfaces.DatabaseDriverConfigInterface {
 	return c.Database
 }
 
@@ -64,9 +64,9 @@ func (session *SessionConfig) GetDriverConfig() map[string]interface{} {
 }
 
 type DatabaseConnectionConfig struct {
-	Driver interfaces.DriverKeyOrConstructor
+	Driver         interfaces.DriverKeyOrConstructor
 	ConnectionName string
-	Config map[string]interface{} 
+	Config         map[string]interface{}
 }
 
 func (d DatabaseConnectionConfig) GetDriver() interfaces.DriverKeyOrConstructor {
@@ -78,5 +78,5 @@ func (d DatabaseConnectionConfig) GetConnectionName() string {
 }
 
 func (d DatabaseConnectionConfig) GetConfig() map[string]interface{} {
-    return d.Config
+	return d.Config
 }

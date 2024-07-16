@@ -1,6 +1,7 @@
 package dummy_handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -83,4 +84,24 @@ func SessionGetHandler(w http.ResponseWriter, r *http.Request) {
 func MiddlewareTest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Logging in handler")
 	fmt.Fprintf(w, "route with middleware handler")
+}
+
+// @Router /database-test [get]
+func DatabaseTest(w http.ResponseWriter, r *http.Request) {
+	connection, err := application.Instance.Database.GetConnection("api")
+	if (err != nil){
+		fmt.Println("errror while mysql query: ", err)
+	}
+
+	collection, error := connection.Select("SELECT * FROM dummy_table")
+	if (error != nil) {
+		fmt.Println("errror while mysql query: ", error)
+	}
+
+	// Encode the map to JSON
+    jsonData, err := json.Marshal(collection.GetRows())
+    if err != nil {
+		panic(r)
+    }
+	fmt.Println("Error encoding JSON:", jsonData)
 }
