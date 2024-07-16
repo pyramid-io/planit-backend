@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 )
 
 var serviceRegistry = map[string]DriverConstructor{
 	"filesystem": NewFileSystemSessionDriver,
 }
-
-type DriverKeyOrConstructor interface{}
 
 type DriverConstructor func(config map[string]interface{}) (SessionDriverInterface, error)
 
@@ -37,7 +36,7 @@ type SessionService struct {
 	driver SessionDriverInterface
 }
 
-func New(driverKeyOrConstructor DriverKeyOrConstructor, driverConfig map[string]interface{}) (SessionServiceInterface, error) {
+func New(driverKeyOrConstructor interfaces.DriverKeyOrConstructor, driverConfig map[string]interface{}) (SessionServiceInterface, error) {
 	var constructor DriverConstructor
 	var ok bool
 
