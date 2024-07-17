@@ -1,6 +1,7 @@
 package application
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sync"
@@ -14,8 +15,9 @@ import (
 )
 
 type Application struct {
+	Dir *string
 	Config  interfaces.ConfigInterface
-	Modules []interfaces.ModuleInterface
+	Modules map[string]interfaces.ModuleInterface
 	Router  router.RouterInterface
 	Server  server.ServerInterface
 	Logger  logger.LoggerInterface
@@ -28,10 +30,18 @@ var (
 	once     sync.Once
 )
 
-func New(config interfaces.ConfigInterface) (*Application, error) {
+func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
 	fmt.Println("Initializing framework application...")
 
-	modules := config.GetModulesConfig()
+	modulesConfig := config.GetModulesConfig()
+
+	modules := make(map[string]interfaces.ModuleInterface)
+	for _, module := range modulesConfig {
+		modules[module.GetName()] = module 
+	}
+
+
+	
 	router, err := router.New()
 	if err != nil {
 		return nil, err
@@ -63,12 +73,13 @@ func New(config interfaces.ConfigInterface) (*Application, error) {
 
 	once.Do(func() {
 		Instance = &Application{
-			Config:  config,
-			Modules: modules,
-			Router:  router,
-			Server:  server,
-			Logger:  logger,
-			Session: session,
+			Dir:      &dir,
+			Config:   config,
+			Modules:  modules,
+			Router:   router,
+			Server:   server,
+			Logger:   logger,
+			Session:  session,
 			Database: database,
 		}
 	})
@@ -101,4 +112,12 @@ func (appInstance *Application) Terminate() {
 			iface.Terminate()
 		}
 	}
+}
+
+func (appInstance *Application) GetModule(key string) (interfaces.ModuleInterface, error) {
+	if module, exists := appInstance.Modules[key]; exists {
+		return module, nil
+	}
+
+	return nil, errors.New("module is not registered for key: " + key)
 }

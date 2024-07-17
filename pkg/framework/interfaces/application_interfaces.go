@@ -6,4 +6,6 @@ type TerminateableServiceInterface interface {
 
 type ModuleInterface interface {
 	Boot()
+	GetName() string
+	GetResourceDir() string
 }

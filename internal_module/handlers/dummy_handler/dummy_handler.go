@@ -2,7 +2,9 @@ package dummy_handler
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/pyramid.io/planit-backend/pkg/framework/application"
@@ -88,27 +90,47 @@ func MiddlewareTest(w http.ResponseWriter, r *http.Request) {
 // @Router /database-test [get]
 func DatabaseTest(w http.ResponseWriter, r *http.Request) {
 	connection, err := application.Instance.Database.GetConnection("api")
-	if (err != nil){
+	if err != nil {
 		fmt.Println("errror while mysql query: ", err)
 	}
 
 	collection, error := connection.Select("SELECT * FROM dummy_table")
-	if (error != nil) {
+	if error != nil {
 		fmt.Println("errror while mysql query: ", error)
 	}
 
 	var dummies []dummy
 	collection.Unmarshal(&dummies)
 
-	for _,dummy := range dummies {
-		fmt.Println("name is: ", dummy.Name)	
-		fmt.Println("id is: ", dummy.Id)	
-	
-	}
+	for _, dummy := range dummies {
+		fmt.Println("name is: ", dummy.Name)
+		fmt.Println("id is: ", dummy.Id)
 
+	}
 }
 
 type dummy struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// @Router / [get]
+func Home(w http.ResponseWriter, r *http.Request) {
+	module, err := application.Instance.GetModule("internal")
+	if (err != nil) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	tmplPath := filepath.Join(
+		module.GetResourceDir(),
+		"index.html",
+	)
+
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl.Execute(w, nil)
 }
