@@ -1,7 +1,6 @@
 package dummy_handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -98,10 +97,18 @@ func DatabaseTest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("errror while mysql query: ", error)
 	}
 
-	// Encode the map to JSON
-    jsonData, err := json.Marshal(collection.GetRows())
-    if err != nil {
-		panic(r)
-    }
-	fmt.Println("Error encoding JSON:", jsonData)
+	var dummies []dummy
+	collection.Unmarshal(&dummies)
+
+	for _,dummy := range dummies {
+		fmt.Println("name is: ", dummy.Name)	
+		fmt.Println("id is: ", dummy.Id)	
+	
+	}
+
+}
+
+type dummy struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
 }
