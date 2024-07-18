@@ -27,7 +27,24 @@ services:
     entrypoint: /usr/local/bin/entrypoint.sh
     networks:
       - planit-network
-
+  db:
+    image: mysql
+    container_name: planit-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_API_USER}
+      MYSQL_DATABASE: ${MYSQL_API_DATABASE}
+      MYSQL_USER: ${MYSQL_API_USER}
+      MYSQL_PASSWORD: ${MYSQL_API_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./config/docker/db/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+    restart: always
+    networks:
+      - planit-network
 networks:
   planit-network:
     driver: bridge
+volumes:
+    mysql_data:

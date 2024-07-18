@@ -1,33 +1,37 @@
 package config
 
 import (
-	"github.com/pyramid.io/planit-backend/pkg/framework/application"
-	"github.com/pyramid.io/planit-backend/pkg/framework/session"
+	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 )
 
 type Config struct {
 	Name     *string
-	Modules  *[]application.ModuleInterface
-	Server   application.ServerConfigInterface
-	Logger   application.LoggerConfigInterface
-	Session  application.SessionConfigInterface
+	Modules  *[]interfaces.ModuleInterface
+	Server   interfaces.ServerConfigInterface
+	Logger   interfaces.LoggerConfigInterface
+	Session  interfaces.SessionConfigInterface
+	Database []interfaces.DatabaseDriverConfigInterface
 	Services *map[string]interface{}
 }
 
-func (c *Config) GetModulesConfig() []application.ModuleInterface {
+func (c *Config) GetModulesConfig() []interfaces.ModuleInterface {
 	return *c.Modules
 }
 
-func (c *Config) GetSeverConfig() application.ServerConfigInterface {
+func (c *Config) GetSeverConfig() interfaces.ServerConfigInterface {
 	return c.Server
 }
 
-func (c *Config) GetLoggerConfig() application.LoggerConfigInterface {
+func (c *Config) GetLoggerConfig() interfaces.LoggerConfigInterface {
 	return c.Logger
 }
 
-func (c *Config) GetSessionConfig() application.SessionConfigInterface {
+func (c *Config) GetSessionConfig() interfaces.SessionConfigInterface {
 	return c.Session
+}
+
+func (c *Config) GetDatabaseConfig() []interfaces.DatabaseDriverConfigInterface {
+	return c.Database
 }
 
 type ServerConfig struct {
@@ -47,14 +51,32 @@ func (logger *LoggerConfig) GetPath() string {
 }
 
 type SessionConfig struct {
-	Driver session.DriverKeyOrConstructor
+	Driver interfaces.DriverKeyOrConstructor
 	Config map[string]interface{}
 }
 
-func (session *SessionConfig) GetDriver() session.DriverKeyOrConstructor {
+func (session *SessionConfig) GetDriver() interfaces.DriverKeyOrConstructor {
 	return session.Driver
 }
 
 func (session *SessionConfig) GetDriverConfig() map[string]interface{} {
 	return session.Config
+}
+
+type DatabaseConnectionConfig struct {
+	Driver         interfaces.DriverKeyOrConstructor
+	ConnectionName string
+	Config         map[string]interface{}
+}
+
+func (d DatabaseConnectionConfig) GetDriver() interfaces.DriverKeyOrConstructor {
+	return d.Driver
+}
+
+func (d DatabaseConnectionConfig) GetConnectionName() string {
+	return d.ConnectionName
+}
+
+func (d DatabaseConnectionConfig) GetConfig() map[string]interface{} {
+	return d.Config
 }

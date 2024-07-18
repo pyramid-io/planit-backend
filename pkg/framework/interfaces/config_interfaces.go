@@ -1,17 +1,11 @@
-package application
+package interfaces
 
-import "github.com/pyramid.io/planit-backend/pkg/framework/session"
-
-type TerminateableServiceInterface interface {
-	Terminate()
-}
-
-// config interfaces which is required by application
 type ConfigInterface interface {
 	GetModulesConfig() []ModuleInterface
 	GetSeverConfig() ServerConfigInterface
 	GetLoggerConfig() LoggerConfigInterface
 	GetSessionConfig() SessionConfigInterface
+	GetDatabaseConfig() []DatabaseDriverConfigInterface
 }
 
 type ServerConfigInterface interface {
@@ -22,11 +16,17 @@ type LoggerConfigInterface interface {
 	GetPath() string
 }
 
+type DriverKeyOrConstructor interface{}
+
 type SessionConfigInterface interface {
-	GetDriver() session.DriverKeyOrConstructor
+	GetDriver() DriverKeyOrConstructor
 	GetDriverConfig() map[string]interface{}
 }
 
-type ModuleInterface interface {
-	Boot()
+type DatabaseConfigInterface interface{}
+
+type DatabaseDriverConfigInterface interface {
+	GetDriver() DriverKeyOrConstructor
+	GetConnectionName() string
+	GetConfig() map[string]interface{}
 }

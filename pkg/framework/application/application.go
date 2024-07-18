@@ -1,23 +1,28 @@
 package application
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sync"
 
+	"github.com/pyramid.io/planit-backend/pkg/framework/database"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
+	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/logger"
 	"github.com/pyramid.io/planit-backend/pkg/framework/server"
 	"github.com/pyramid.io/planit-backend/pkg/framework/session"
 )
 
 type Application struct {
-	Config  ConfigInterface
-	Modules []ModuleInterface
+	Dir *string
+	Config  interfaces.ConfigInterface
+	Modules map[string]interfaces.ModuleInterface
 	Router  router.RouterInterface
 	Server  server.ServerInterface
 	Logger  logger.LoggerInterface
 	Session session.SessionServiceInterface
+	Database database.DatabaseServiceInterface
 }
 
 var (
@@ -25,10 +30,18 @@ var (
 	once     sync.Once
 )
 
-func New(config ConfigInterface) (*Application, error) {
+func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
 	fmt.Println("Initializing framework application...")
 
-	modules := config.GetModulesConfig()
+	modulesConfig := config.GetModulesConfig()
+
+	modules := make(map[string]interfaces.ModuleInterface)
+	for _, module := range modulesConfig {
+		modules[module.GetName()] = module 
+	}
+
+
+	
 	router, err := router.New()
 	if err != nil {
 		return nil, err
@@ -53,14 +66,21 @@ func New(config ConfigInterface) (*Application, error) {
 		return nil, err
 	}
 
+	database, err := database.New(config.GetDatabaseConfig())
+	if err != nil {
+		return nil, err
+	}
+
 	once.Do(func() {
 		Instance = &Application{
-			Config:  config,
-			Modules: modules,
-			Router:  router,
-			Server:  server,
-			Logger:  logger,
-			Session: session,
+			Dir:      &dir,
+			Config:   config,
+			Modules:  modules,
+			Router:   router,
+			Server:   server,
+			Logger:   logger,
+			Session:  session,
+			Database: database,
 		}
 	})
 
@@ -87,9 +107,17 @@ func (appInstance *Application) Terminate() {
 
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
-		iface, ok := field.Interface().(TerminateableServiceInterface)
+		iface, ok := field.Interface().(interfaces.TerminateableServiceInterface)
 		if ok {
 			iface.Terminate()
 		}
 	}
+}
+
+func (appInstance *Application) GetModule(key string) (interfaces.ModuleInterface, error) {
+	if module, exists := appInstance.Modules[key]; exists {
+		return module, nil
+	}
+
+	return nil, errors.New("module is not registered for key: " + key)
 }

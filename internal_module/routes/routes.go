@@ -1,9 +1,6 @@
 package routes
 
 import (
-	"fmt"
-	"net/http"
-
 	_ "github.com/pyramid.io/planit-backend/docs"
 	"github.com/pyramid.io/planit-backend/internal_module/handlers/dummy_handler"
 	json_handler "github.com/pyramid.io/planit-backend/internal_module/handlers/json_handler"
@@ -16,9 +13,7 @@ func GetRoutes() *[]router.RouteInterface {
 }
 
 var routes = []router.RouteInterface{
-	router.GET("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "This is the Home Page")
-	}),
+	router.GET("/", dummy_handler.Home),
 	router.GET("/ping", dummy_handler.Ping),
 	router.GET("/pong", dummy_handler.Pong),
 	router.GET("/json", json_handler.JsonResponseHandler),
@@ -28,6 +23,7 @@ var routes = []router.RouteInterface{
 	router.GET("/swagger/*", httpSwagger.WrapHandler),
 	router.GET("/session-create", dummy_handler.SessionCreateHandler),
 	router.GET("/session-get", dummy_handler.SessionGetHandler),
+	router.GET("/database-test", dummy_handler.DatabaseTest),
 	router.GET("/route-with-middleware", dummy_handler.MiddlewareTest).
 		Middlewares(
 			LoggingMiddlewareInternal,
