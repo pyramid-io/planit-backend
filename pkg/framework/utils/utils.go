@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -33,4 +34,19 @@ func ReadEnvOrPanic(key string) string {
 	}
 
 	return val
+}
+
+func DmupStrcut(message string, s interface{}) {
+    v := reflect.ValueOf(s)
+    t := v.Type()
+
+	fmt.Println("\n")
+	var properties []string
+    for i := 0; i < v.NumField(); i++ {
+        field := t.Field(i)
+        value := v.Field(i)
+
+        properties = append(properties, fmt.Sprintf("\n\t%s: %v", field.Name, value.Interface()))
+    }
+	fmt.Printf("%s: %s", message, properties)
 }

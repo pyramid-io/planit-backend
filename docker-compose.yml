@@ -40,7 +40,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./config/docker/db/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+      - ./config/db/my.cnf:/etc/mysql/my.cnf
     restart: always
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_0900_ai_ci
     networks:
       - planit-network
 networks:

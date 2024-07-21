@@ -2,11 +2,12 @@ package drivers
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"errors"
 	"fmt"
 	"log"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/pyramid.io/planit-backend/pkg/framework/database/result"
 )
@@ -17,50 +18,62 @@ type MysqlDriver struct {
 	connection *sql.DB
 }
 
-func (mysqlDriver *MysqlDriver) Select(statement string, queryParams ...any) (*result.RowCollection, error) {
-	rows, err := mysqlDriver.connection.Query(statement, queryParams...)
-
+func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*result.RowCollection, error) {
+	dbRows, err := driver.connection.Query(statement, queryParams...)
 	if (err != nil) {
 		return nil, err
 	}
+	
+	defer dbRows.Close()
 
-	rowCollection := &result.RowCollection{}
-	columns, err := rows.Columns()
+	columns, err := dbRows.Columns()
     if err != nil {
         log.Fatal(err)
     }
 
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
-        for i := range columns {
-            valuePtrs[i] = &values[i]
-        }
+    values := make([]interface{}, len(columns))
+    for i := range values {
+        var value interface{}
+        values[i] = &value
+    }
 
-		err := rows.Scan(valuePtrs...)
+    var records result.RowCollection
+
+    for dbRows.Next() {
+        err := dbRows.Scan(values...)
         if err != nil {
             log.Fatal(err)
         }
 
-		row := make(result.Row)
+        record := make(result.Row)
         for i, colName := range columns {
-            row[colName] = values[i]
+            rawValue := *(values[i].(*interface{}))
+
+            if rawValue != nil {
+                switch v := rawValue.(type) {
+                case []byte:
+					record[colName] = string(v) 
+                default:
+                    record[colName] = v
+                }
+            } else {
+                record[colName] = nil
+            }
         }
+		records.Add(record)
+    }
 
-		rowCollection.Add(row)
-	}
-
-	return rowCollection, nil
+	return &records, nil
 }
 
-func (mysqlDriver *MysqlDriver) Connect() error {
+func (driver *MysqlDriver) Connect() error {
 
-    connection, err := sql.Open("mysql", mysqlDriver.dsn)
+    connection, err := sql.Open("mysql", driver.dsn)
     if err != nil {
         panic(err)
     }
 
-	if maxOpenConnections, exists := mysqlDriver.config["maxOpenConnections"]; exists {
+	if maxOpenConnections, exists := driver.config["maxOpenConnections"]; exists {
 		val, ok := maxOpenConnections.(int)
 		if !ok{
 			fmt.Println("max open connections in config must be defined as int")
@@ -69,7 +82,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	if maxLifeTime, exists := mysqlDriver.config["maxLifeTime"]; exists {
+	if maxLifeTime, exists := driver.config["maxLifeTime"]; exists {
 		val, ok := maxLifeTime.(time.Duration)
 		if !ok{
 			fmt.Println("max life time in config must be time.Duration")
@@ -78,7 +91,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	if macIdleConnection, exists := mysqlDriver.config["maxIdleConnections"]; exists {
+	if macIdleConnection, exists := driver.config["maxIdleConnections"]; exists {
 		val, ok := macIdleConnection.(int)
 		if !ok{
 			fmt.Println("max open connections in config must be int")
@@ -87,7 +100,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	mysqlDriver.connection = connection
+	driver.connection = connection
 
 	return nil
 }
@@ -122,12 +135,17 @@ func getDsnByConfig(config map[string]interface{}) (*string, error) {
 	host, hostExists := config["host"].(string)
 	port, portExists := config["port"].(string)
 	databaseName, databaseNameExists := config["databaseName"].(string)
+	charset, charsetExists := config["charset"].(string)
 
 	if (!usernameExists || !passwordExists || !hostExists || !portExists || !databaseNameExists) {
 		return nil, errors.New("mysql connector config is missing")
 	}
 
 	dsn := username + ":" + password + "@tcp(" + host + ":" + port + ")/" + databaseName
-	
+
+	if charsetExists {	
+		dsn = dsn + "?" + "charset=" + charset
+	}
+
 	return &dsn, nil
 }

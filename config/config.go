@@ -54,6 +54,7 @@ func initialize() {
 					"host": utils.ReadEnvOrPanic("MYSQL_API_HOST"),
 					"port": utils.ReadEnv("MYSQL_API_PORT", "3306"),
 					"databaseName": utils.ReadEnvOrPanic("MYSQL_API_DATABASE"),
+					"charset": "utf8mb4",
 				},
 			},
 		},
