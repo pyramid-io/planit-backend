@@ -8,8 +8,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/pyramid.io/planit-backend/pkg/framework/database/result"
+	"github.com/pyramid.io/planit-backend/pkg/framework/database/db_result"
 )
 
 type MysqlDriver struct {
@@ -18,7 +17,7 @@ type MysqlDriver struct {
 	connection *sql.DB
 }
 
-func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*result.RowCollection, error) {
+func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*db_result.SelectResult, error) {
 	dbRows, err := driver.connection.Query(statement, queryParams...)
 	if (err != nil) {
 		return nil, err
@@ -37,7 +36,7 @@ func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*result
         values[i] = &value
     }
 
-    var records result.RowCollection
+    var result db_result.SelectResult
 
     for dbRows.Next() {
         err := dbRows.Scan(values...)
@@ -45,7 +44,7 @@ func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*result
             log.Fatal(err)
         }
 
-        record := make(result.Row)
+        record := make(db_result.Row)
         for i, colName := range columns {
             rawValue := *(values[i].(*interface{}))
 
@@ -60,10 +59,33 @@ func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*result
                 record[colName] = nil
             }
         }
-		records.Add(record)
+		result.Add(record)
     }
 
-	return &records, nil
+	return &result, nil
+}
+
+func (driver *MysqlDriver) Exec(statement string, queryParams ...any) (*db_result.ExecuteResult, error) {
+	Result, err := driver.connection.Exec(statement, queryParams...)
+
+	if err != nil {
+		log.Fatalf("error while insert to database: ", err)
+	}
+
+	id, err := Result.LastInsertId()
+	if err != nil {
+		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+	}
+
+	count, err := Result.RowsAffected()
+	if err != nil {
+		log.Fatalf("impossible to retrieve affected rows: ", err)
+	}
+	
+	return &db_result.ExecuteResult{
+		LastInsertId: id,
+		RowsAffected: count,
+	}, nil
 }
 
 func (driver *MysqlDriver) Connect() error {
@@ -114,7 +136,6 @@ func (mysqlDriver *MysqlDriver) Close() error {
 	}
 
 	return nil
-
 }
 
 func MysqlConnectionConstructor(config map[string]interface{}) (DatabaseDriverInterface, error) {
