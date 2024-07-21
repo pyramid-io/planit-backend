@@ -94,30 +94,43 @@ func DatabaseTest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("errror while mysql query: ", err)
 	}
 
-	collection, error := connection.Select("SELECT * FROM dummy_table")
-	if error != nil {
-		fmt.Println("errror while mysql query: ", error)
+	collection, err := connection.Select("SELECT * FROM dummy_table")
+	if err != nil {
+		fmt.Println("errror while mysql query: ", err)
 	}
 
 	var dummies []dummy
 	collection.Unmarshal(&dummies)
 
-	for _, dummy := range dummies {
-		fmt.Println("name is: ", dummy.Name)
-		fmt.Println("id is: ", dummy.Id)
-
+	module, err := application.Instance.GetModule("internal")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	tmplPath := filepath.Join(
+		module.GetResourceDir(),
+		"test-pages",
+		"database.html",
+	)
+
+	tmpl, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl.Execute(w, dummies)
 }
 
 type dummy struct {
-	Id   string `json:"id"`
+	Id   int `json:"id"`
 	Name string `json:"name"`
 }
 
 // @Router / [get]
 func Home(w http.ResponseWriter, r *http.Request) {
 	module, err := application.Instance.GetModule("internal")
-	if (err != nil) {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 

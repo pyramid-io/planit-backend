@@ -2,13 +2,13 @@ package drivers
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"errors"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/pyramid.io/planit-backend/pkg/framework/database/result"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/pyramid.io/planit-backend/pkg/framework/database/db_result"
 )
 
 type MysqlDriver struct {
@@ -17,50 +17,85 @@ type MysqlDriver struct {
 	connection *sql.DB
 }
 
-func (mysqlDriver *MysqlDriver) Select(statement string, queryParams ...any) (*result.RowCollection, error) {
-	rows, err := mysqlDriver.connection.Query(statement, queryParams...)
-
+func (driver *MysqlDriver) Select(statement string, queryParams ...any) (*db_result.SelectResult, error) {
+	dbRows, err := driver.connection.Query(statement, queryParams...)
 	if (err != nil) {
 		return nil, err
 	}
+	
+	defer dbRows.Close()
 
-	rowCollection := &result.RowCollection{}
-	columns, err := rows.Columns()
+	columns, err := dbRows.Columns()
     if err != nil {
         log.Fatal(err)
     }
 
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
-        for i := range columns {
-            valuePtrs[i] = &values[i]
-        }
+    values := make([]interface{}, len(columns))
+    for i := range values {
+        var value interface{}
+        values[i] = &value
+    }
 
-		err := rows.Scan(valuePtrs...)
+    var result db_result.SelectResult
+
+    for dbRows.Next() {
+        err := dbRows.Scan(values...)
         if err != nil {
             log.Fatal(err)
         }
 
-		row := make(result.Row)
+        record := make(db_result.Row)
         for i, colName := range columns {
-            row[colName] = values[i]
+            rawValue := *(values[i].(*interface{}))
+
+            if rawValue != nil {
+                switch v := rawValue.(type) {
+                case []byte:
+					record[colName] = string(v) 
+                default:
+                    record[colName] = v
+                }
+            } else {
+                record[colName] = nil
+            }
         }
+		result.Add(record)
+    }
 
-		rowCollection.Add(row)
-	}
-
-	return rowCollection, nil
+	return &result, nil
 }
 
-func (mysqlDriver *MysqlDriver) Connect() error {
+func (driver *MysqlDriver) Exec(statement string, queryParams ...any) (*db_result.ExecuteResult, error) {
+	Result, err := driver.connection.Exec(statement, queryParams...)
 
-    connection, err := sql.Open("mysql", mysqlDriver.dsn)
+	if err != nil {
+		log.Fatalf("error while insert to database: ", err)
+	}
+
+	id, err := Result.LastInsertId()
+	if err != nil {
+		log.Fatalf("impossible to retrieve last inserted id: %s", err)
+	}
+
+	count, err := Result.RowsAffected()
+	if err != nil {
+		log.Fatalf("impossible to retrieve affected rows: ", err)
+	}
+	
+	return &db_result.ExecuteResult{
+		LastInsertId: id,
+		RowsAffected: count,
+	}, nil
+}
+
+func (driver *MysqlDriver) Connect() error {
+
+    connection, err := sql.Open("mysql", driver.dsn)
     if err != nil {
         panic(err)
     }
 
-	if maxOpenConnections, exists := mysqlDriver.config["maxOpenConnections"]; exists {
+	if maxOpenConnections, exists := driver.config["maxOpenConnections"]; exists {
 		val, ok := maxOpenConnections.(int)
 		if !ok{
 			fmt.Println("max open connections in config must be defined as int")
@@ -69,7 +104,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	if maxLifeTime, exists := mysqlDriver.config["maxLifeTime"]; exists {
+	if maxLifeTime, exists := driver.config["maxLifeTime"]; exists {
 		val, ok := maxLifeTime.(time.Duration)
 		if !ok{
 			fmt.Println("max life time in config must be time.Duration")
@@ -78,7 +113,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	if macIdleConnection, exists := mysqlDriver.config["maxIdleConnections"]; exists {
+	if macIdleConnection, exists := driver.config["maxIdleConnections"]; exists {
 		val, ok := macIdleConnection.(int)
 		if !ok{
 			fmt.Println("max open connections in config must be int")
@@ -87,7 +122,7 @@ func (mysqlDriver *MysqlDriver) Connect() error {
 		}
 	}
 
-	mysqlDriver.connection = connection
+	driver.connection = connection
 
 	return nil
 }
@@ -101,7 +136,6 @@ func (mysqlDriver *MysqlDriver) Close() error {
 	}
 
 	return nil
-
 }
 
 func MysqlConnectionConstructor(config map[string]interface{}) (DatabaseDriverInterface, error) {
@@ -122,12 +156,17 @@ func getDsnByConfig(config map[string]interface{}) (*string, error) {
 	host, hostExists := config["host"].(string)
 	port, portExists := config["port"].(string)
 	databaseName, databaseNameExists := config["databaseName"].(string)
+	charset, charsetExists := config["charset"].(string)
 
 	if (!usernameExists || !passwordExists || !hostExists || !portExists || !databaseNameExists) {
 		return nil, errors.New("mysql connector config is missing")
 	}
 
 	dsn := username + ":" + password + "@tcp(" + host + ":" + port + ")/" + databaseName
-	
+
+	if charsetExists {	
+		dsn = dsn + "?" + "charset=" + charset
+	}
+
 	return &dsn, nil
 }
