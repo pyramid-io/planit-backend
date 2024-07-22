@@ -15,7 +15,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-
 	
 	fmt.Println("Starting the application...")
 	app, err := application.New(config.GetInstance(), getRootDir())

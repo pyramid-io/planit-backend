@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/pyramid.io/planit-backend/internal_module"
+	"github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/config"
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/utils"
 )
+
 
 var (
 	instance *config.Config
@@ -56,6 +57,13 @@ func initialize() {
 					"databaseName": utils.ReadEnvOrPanic("MYSQL_API_DATABASE"),
 					"charset": "utf8mb4",
 				},
+			},
+		},
+		Auth: []interfaces.AuthenticationProviderConfigInterface{
+			config.AuthenticationProviderConfig{
+				Provider: "session",
+				Name: "session",
+				Config: make(map[string]interface{}),
 			},
 		},
 	}

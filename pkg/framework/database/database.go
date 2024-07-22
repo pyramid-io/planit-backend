@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/database/drivers"
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 )
 
 type DatabaseServiceInterface interface {

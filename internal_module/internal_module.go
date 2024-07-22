@@ -6,7 +6,7 @@ import (
 	"github.com/pyramid.io/planit-backend/internal_module/routes"
 	"github.com/pyramid.io/planit-backend/pkg/framework/application"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
+	"github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
 )
 
 var Module interfaces.ModuleInterface = &internalModule{

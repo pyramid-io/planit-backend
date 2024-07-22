@@ -5,48 +5,25 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
+	application_interfaces "github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
+	"github.com/pyramid.io/planit-backend/pkg/framework/session/drivers"
+	"github.com/pyramid.io/planit-backend/pkg/framework/session/session_interfaces"
 )
-
-var serviceRegistry = map[string]DriverConstructor{
-	"filesystem": NewFileSystemSessionDriver,
+type SessionManager struct {
+	driver session_interfaces.SessionDriverInterface
 }
 
-type DriverConstructor func(config map[string]interface{}) (SessionDriverInterface, error)
-
-type SessionServiceInterface interface {
-	Create(data map[string]interface{}, expiry *time.Time) (*Session, error)
-	Get(id string) (*Session, error)
-	Delete(id string) error
-}
-
-type SessionDriverInterface interface {
-	Create(key string, data map[string]interface{}, expiresAt *time.Time) (*Session, error)
-	Get(key string) (*Session, error)
-	Delete(key string) error
-}
-
-type Session struct {
-	ID string
-	Data map[string]interface{}
-	ExpiresAt *time.Time
-}
-
-type SessionService struct {
-	driver SessionDriverInterface
-}
-
-func New(driverKeyOrConstructor interfaces.DriverKeyOrConstructor, driverConfig map[string]interface{}) (SessionServiceInterface, error) {
-	var constructor DriverConstructor
+func New(driverKeyOrConstructor application_interfaces.DriverKeyOrConstructor, driverConfig map[string]interface{}) (session_interfaces.SessionManagerInterface, error) {
+	var constructor drivers.SessionDriverConstructor
 	var ok bool
 
 	switch v := driverKeyOrConstructor.(type) {
 	case string:
-		constructor, ok = serviceRegistry[v]
+		constructor, ok = drivers.ServiceRegistry[v]
 		if !ok {
 			return nil, errors.New("session driver could not be started")
 		}
-	case DriverConstructor:
+	case drivers.SessionDriverConstructor:
 		constructor = v
 	default:
 		return nil, errors.New("invalid driver key or constructor")
@@ -57,12 +34,12 @@ func New(driverKeyOrConstructor interfaces.DriverKeyOrConstructor, driverConfig 
 		return nil, err
 	}
 
-	return &SessionService{
+	return &SessionManager{
 		driver: driver,
 	}, nil
 }
 
-func (service *SessionService) Create(data map[string]interface{}, expiry *time.Time) (*Session, error) {
+func (service *SessionManager) Create(data map[string]interface{}, expiry *time.Time) (session_interfaces.SessionInterface, error) {
 	sessionID := uuid.New().String()
 
 	session, err := service.driver.Create(
@@ -78,7 +55,7 @@ func (service *SessionService) Create(data map[string]interface{}, expiry *time.
 	return session, nil
 }
 
-func (service *SessionService) Get(id string) (*Session, error) {
+func (service *SessionManager) Get(id string) (session_interfaces.SessionInterface, error) {
 	session, err := service.driver.Get(id)
 	if err != nil {
 		return nil, err
@@ -87,6 +64,6 @@ func (service *SessionService) Get(id string) (*Session, error) {
 	return session, nil
 }
 
-func (service *SessionService) Delete(id string) error {
+func (service *SessionManager) Delete(id string) error {
 	return service.driver.Delete(id)
 }

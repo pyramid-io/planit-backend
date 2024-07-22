@@ -1,4 +1,4 @@
-package session
+package drivers
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/pyramid.io/planit-backend/pkg/framework/session/session_interfaces"
 )
 
 type FileSystemSessionDriver struct {
@@ -15,7 +17,25 @@ type FileSystemSessionDriver struct {
 	defaultTTL time.Duration
 }
 
-func NewFileSystemSessionDriver(config map[string]interface{}) (SessionDriverInterface, error) {
+type Session struct {
+	id        string
+	data      map[string]interface{}
+	expiresAt *time.Time
+}
+
+func (s *Session) GetID() string {
+	return s.id
+}
+
+func (s *Session) GetData() map[string]interface{} {
+	return s.data
+}
+
+func (s *Session) GetExpiresAt() *time.Time {
+	return s.expiresAt
+}
+
+func NewFileSystemSessionDriver(config map[string]interface{}) (session_interfaces.SessionDriverInterface, error) {
 	dir, ok := config["dir"]
 	if (!ok) {
 		log.Fatalf("parameter `dir` is missing for file system session driver construction")
@@ -24,7 +44,6 @@ func NewFileSystemSessionDriver(config map[string]interface{}) (SessionDriverInt
 	if (!ok) {
 		log.Fatalf("parameter `dir` wrong format")
 	}
-
 
 	defaultTTL, ok := config["defaultTTL"]
 	if (!ok) {
@@ -44,7 +63,7 @@ func NewFileSystemSessionDriver(config map[string]interface{}) (SessionDriverInt
 	}, nil
 }
 
-func (driver *FileSystemSessionDriver) Create(key string, data map[string]interface{}, expiresAt *time.Time) (*Session, error) {
+func (driver *FileSystemSessionDriver) Create(key string, data map[string]interface{}, expiresAt *time.Time) (session_interfaces.SessionInterface, error) {
 
 	if (expiresAt == nil) {
 		ttlBasedExpiresAt := time.Now().Add(driver.defaultTTL)
@@ -52,9 +71,9 @@ func (driver *FileSystemSessionDriver) Create(key string, data map[string]interf
 	}
 	
 	session := &Session{
-		ID: key, 
-		Data: data,
-		ExpiresAt: expiresAt,
+		id: key, 
+		data: data,
+		expiresAt: expiresAt,
 	}
 	
 	jsonData, err := json.Marshal(session)
@@ -73,7 +92,7 @@ func (driver *FileSystemSessionDriver) Create(key string, data map[string]interf
 	return session, nil
 }
 
-func (driver *FileSystemSessionDriver) Get(key string) (*Session, error) {
+func (driver *FileSystemSessionDriver) Get(key string) (session_interfaces.SessionInterface, error) {
 
     data, err := os.ReadFile(driver.getPath(key))
     if err != nil {
@@ -87,7 +106,7 @@ func (driver *FileSystemSessionDriver) Get(key string) (*Session, error) {
 
 	now := time.Now().UTC()
 
-	if session.ExpiresAt.Before(now) {
+	if session.expiresAt.Before(now) {
 		return nil, errors.New("session is expired") 
 	}    
     return session, nil

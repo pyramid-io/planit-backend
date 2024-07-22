@@ -6,7 +6,10 @@ type ConfigInterface interface {
 	GetLoggerConfig() LoggerConfigInterface
 	GetSessionConfig() SessionConfigInterface
 	GetDatabaseConfig() []DatabaseDriverConfigInterface
+	GetAuthConfig() []AuthenticationProviderConfigInterface
 }
+
+type DriverKeyOrConstructor interface{}
 
 type ServerConfigInterface interface {
 	GetPort() string
@@ -16,17 +19,19 @@ type LoggerConfigInterface interface {
 	GetPath() string
 }
 
-type DriverKeyOrConstructor interface{}
-
 type SessionConfigInterface interface {
 	GetDriver() DriverKeyOrConstructor
 	GetDriverConfig() map[string]interface{}
 }
 
-type DatabaseConfigInterface interface{}
-
 type DatabaseDriverConfigInterface interface {
 	GetDriver() DriverKeyOrConstructor
 	GetConnectionName() string
+	GetConfig() map[string]interface{}
+}
+
+type AuthenticationProviderConfigInterface interface{
+	GetProvider() DriverKeyOrConstructor
+	GetName() string
 	GetConfig() map[string]interface{}
 }

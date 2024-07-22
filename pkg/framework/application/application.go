@@ -6,28 +6,31 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
+	auth_interfaces "github.com/pyramid.io/planit-backend/pkg/framework/auth/auth_interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/database"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
 	"github.com/pyramid.io/planit-backend/pkg/framework/logger"
 	"github.com/pyramid.io/planit-backend/pkg/framework/server"
 	"github.com/pyramid.io/planit-backend/pkg/framework/session"
+	"github.com/pyramid.io/planit-backend/pkg/framework/session/session_interfaces"
 )
 
 type Application struct {
-	Dir *string
-	Config  interfaces.ConfigInterface
-	Modules map[string]interfaces.ModuleInterface
-	Router  router.RouterInterface
-	Server  server.ServerInterface
-	Logger  logger.LoggerInterface
-	Session session.SessionServiceInterface
-	Database database.DatabaseServiceInterface
+	Dir       *string
+	Config    interfaces.ConfigInterface
+	Modules   map[string]interfaces.ModuleInterface
+	Router    router.RouterInterface
+	Server    server.ServerInterface
+	Logger    logger.LoggerInterface
+	Session   session_interfaces.SessionManagerInterface
+	Database  database.DatabaseServiceInterface
+	Auth      auth_interfaces.AuthServiceInterface
 }
 
 var (
 	Instance *Application
-	once     sync.Once
+	once sync.Once
 )
 
 func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
@@ -37,11 +40,9 @@ func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
 
 	modules := make(map[string]interfaces.ModuleInterface)
 	for _, module := range modulesConfig {
-		modules[module.GetName()] = module 
+		modules[module.GetName()] = module
 	}
 
-
-	
 	router, err := router.New()
 	if err != nil {
 		return nil, err
@@ -71,6 +72,8 @@ func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
 		return nil, err
 	}
 
+	//auth, err = auth.New(config.GetAuthConfig())
+
 	once.Do(func() {
 		Instance = &Application{
 			Dir:      &dir,
@@ -81,6 +84,7 @@ func New(config interfaces.ConfigInterface, dir string) (*Application, error) {
 			Logger:   logger,
 			Session:  session,
 			Database: database,
+			//Auth: auth,
 		}
 	})
 

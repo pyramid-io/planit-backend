@@ -67,7 +67,7 @@ func SessionCreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	session, err := application.Instance.Session.Create(sessionData, nil)
 	if err == nil {
-		fmt.Fprintf(w, fmt.Sprintf(session.ID))
+		fmt.Fprintf(w, fmt.Sprintf(session.GetID()))
 	}
 
 }
@@ -146,4 +146,8 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Execute(w, nil)
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	// application.Instance.Auth.Login()
 }

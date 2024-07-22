@@ -4,6 +4,7 @@ import (
 	_ "github.com/pyramid.io/planit-backend/docs"
 	"github.com/pyramid.io/planit-backend/internal_module/handlers/dummy_handler"
 	json_handler "github.com/pyramid.io/planit-backend/internal_module/handlers/json_handler"
+	"github.com/pyramid.io/planit-backend/pkg/framework/application"
 	"github.com/pyramid.io/planit-backend/pkg/framework/http/router"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -27,5 +28,10 @@ var routes = []router.RouteInterface{
 	router.GET("/route-with-middleware", dummy_handler.MiddlewareTest).
 		Middlewares(
 			LoggingMiddlewareInternal,
+		),
+	router.GET("/login", dummy_handler.Login),
+	router.GET("/needs-logged-in-user", dummy_handler.Ping).
+		Middlewares(
+			application.Instance.Auth.GetProvider("session").GetAuthenticatorMiddleware(),
 		),
 }

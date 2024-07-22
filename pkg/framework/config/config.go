@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/pyramid.io/planit-backend/pkg/framework/interfaces"
+	"github.com/pyramid.io/planit-backend/pkg/framework/application/interfaces"
 )
 
 type Config struct {
@@ -11,6 +11,7 @@ type Config struct {
 	Logger   interfaces.LoggerConfigInterface
 	Session  interfaces.SessionConfigInterface
 	Database []interfaces.DatabaseDriverConfigInterface
+	Auth []interfaces.AuthenticationProviderConfigInterface
 	Services *map[string]interface{}
 }
 
@@ -34,6 +35,11 @@ func (c *Config) GetDatabaseConfig() []interfaces.DatabaseDriverConfigInterface 
 	return c.Database
 }
 
+func (c *Config) GetAuthConfig() []interfaces.AuthenticationProviderConfigInterface {
+	return c.Auth
+}
+
+//------------------------------------------------------------//
 type ServerConfig struct {
 	Port string
 }
@@ -42,6 +48,7 @@ func (server *ServerConfig) GetPort() string {
 	return server.Port
 }
 
+//------------------------------------------------------------//
 type LoggerConfig struct {
 	Path string
 }
@@ -50,6 +57,7 @@ func (logger *LoggerConfig) GetPath() string {
 	return logger.Path
 }
 
+//------------------------------------------------------------//
 type SessionConfig struct {
 	Driver interfaces.DriverKeyOrConstructor
 	Config map[string]interface{}
@@ -63,6 +71,7 @@ func (session *SessionConfig) GetDriverConfig() map[string]interface{} {
 	return session.Config
 }
 
+//------------------------------------------------------------//
 type DatabaseConnectionConfig struct {
 	Driver         interfaces.DriverKeyOrConstructor
 	ConnectionName string
@@ -78,5 +87,24 @@ func (d DatabaseConnectionConfig) GetConnectionName() string {
 }
 
 func (d DatabaseConnectionConfig) GetConfig() map[string]interface{} {
+	return d.Config
+}
+
+//------------------------------------------------------------//
+type AuthenticationProviderConfig struct {
+	Provider interfaces.DriverKeyOrConstructor
+	Name string
+	Config map[string]interface{}
+}
+
+func (d AuthenticationProviderConfig) GetProvider() interfaces.DriverKeyOrConstructor {
+	return d.Provider
+}
+
+func (d AuthenticationProviderConfig) GetName() string {
+	return d.Name
+}
+
+func (d AuthenticationProviderConfig) GetConfig() map[string]interface{} {
 	return d.Config
 }
